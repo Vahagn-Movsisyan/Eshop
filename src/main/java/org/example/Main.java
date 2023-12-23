@@ -71,9 +71,11 @@ public class Main implements Command {
             String description = inputArray[1];
             double price = Double.parseDouble(inputArray[2]);
             int quantity = Integer.parseInt(inputArray[3]);
-            String category = inputArray[4];
+            int category_id = Integer.parseInt(inputArray[4]);
 
+            Category category = CATEGORY_MANAGER.getCategoryById(category_id);
             Product product = new Product(name, description, price, quantity, category);
+
             PRODUCT_MANAGER.productManagerAdd(product);
             System.out.println("Product  with " + name + " is successfully added");
         } else {
@@ -103,8 +105,10 @@ public class Main implements Command {
                 String description = inputArray[1];
                 double price = Double.parseDouble(inputArray[2]);
                 int quantity = Integer.parseInt(inputArray[3]);
-                String category = inputArray[4];
-                PRODUCT_MANAGER.productManagerEditByID(id, name, description, price, quantity, category);
+                int category_id = Integer.parseInt(inputArray[4]);
+
+                Category category = CATEGORY_MANAGER.getCategoryById(category_id);
+                PRODUCT_MANAGER.productManagerEditByID(id, name, description, price, quantity, category.getId());
                 System.out.println("Product with ID " + id + " updated successfully!");
             }
         }

@@ -1,6 +1,7 @@
 package org.example.manager;
 
 import org.example.db.DBConnectionProvider;
+import org.example.model.Category;
 import org.example.model.Product;
 
 import java.sql.*;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductManager {
+    private static final CategoryManager categoryManager = new CategoryManager();
     private final Connection connection = DBConnectionProvider.getInstance().getConnection();
 
     public void productManagerAdd(Product product) {
@@ -17,7 +19,7 @@ public class ProductManager {
             preparedStatement.setString(2, product.getDescription());
             preparedStatement.setDouble(3, product.getPrice());
             preparedStatement.setInt(4, product.getQuantity());
-            preparedStatement.setString(5, product.getProduct_category());
+            preparedStatement.setInt(5, product.getCategory().getId());
             preparedStatement.executeUpdate();
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -28,7 +30,7 @@ public class ProductManager {
         }
     }
 
-    public void productManagerEditByID(int id, String name, String description, double price, int qty, String category) {
+    public void productManagerEditByID(int id, String name, String description, double price, int qty, int category_id) {
         if (getProductById(id) == null) {
             System.out.println("Product with " + id + " id dose not found!");
             return;
@@ -39,7 +41,7 @@ public class ProductManager {
             preparedStatement.setString(2, description);
             preparedStatement.setDouble(3, price);
             preparedStatement.setInt(4, qty);
-            preparedStatement.setString(5, category);
+            preparedStatement.setInt(5, category_id);
             preparedStatement.setInt(6, id);
             preparedStatement.executeUpdate();
             System.out.println("Product with " + id + " successfully edited");
@@ -101,7 +103,8 @@ public class ProductManager {
                 String description = resultSet.getString("product_description");
                 double price = resultSet.getDouble("product_price");
                 int quantity = resultSet.getInt("product_quantity");
-                String category = resultSet.getString("product_category");
+                int category_id = resultSet.getInt("product_category");
+                Category category = categoryManager.getCategoryById(category_id);
                 return new Product(id, name, description, price, quantity, category);
             }
         } catch (SQLException e) {
@@ -121,9 +124,9 @@ public class ProductManager {
                 String description = resultSet.getString("product_description");
                 double price = resultSet.getDouble("product_price");
                 int quantity = resultSet.getInt("product_quantity");
-                String category = resultSet.getString("product_category");
-                Product product = new Product(id, name, description, price, quantity, category);
-                tmpProductList.add(product);
+                int category_id = resultSet.getInt("product_category");
+                Category category = categoryManager.getCategoryById(category_id);
+                tmpProductList.add(new Product(id, name, description, price, quantity, category));
             }
         } catch (SQLException e) {
             e.printStackTrace();
