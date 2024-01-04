@@ -56,6 +56,21 @@ public class CategoryManager {
         }
     }
 
+    public Category getCategoryByName(String categoryName) {
+        String query = "SELECT * FROM category WHERE category_name = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, categoryName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                int id = resultSet.getInt("category_id");
+                return new Category(id, categoryName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Category getCategoryById(int id) {
         String query = "SELECT * FROM category WHERE category_id = " + id;
         try (Statement statement = connection.createStatement()) {

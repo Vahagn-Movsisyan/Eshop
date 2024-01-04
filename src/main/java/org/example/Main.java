@@ -1,16 +1,25 @@
 package org.example;
 
+import org.example.command.Command;
+import org.example.manager.CatalogManager;
 import org.example.manager.CategoryManager;
 import org.example.manager.ProductManager;
+import org.example.manager.UserManager;
+import org.example.model.Catalog;
 import org.example.model.Category;
 import org.example.model.Product;
+import org.example.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main implements Command {
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final CategoryManager CATEGORY_MANAGER = new CategoryManager();
     private static final ProductManager PRODUCT_MANAGER = new ProductManager();
+    private static final CatalogManager CATALOG_MANAGER = new CatalogManager();
+    private static final UserManager USER_MANAGER = new UserManager();
 
     public static void main(String[] args) {
         boolean isRun = true;
@@ -26,22 +35,67 @@ public class Main implements Command {
                 case ADD_PRODUCT -> addProduct();
                 case EDIT_PRODUCT -> editProduct();
                 case DELETE_PRODUCT_BY_ID -> deleteProductById();
+                case ADD_CATALOG -> addCatalog();
                 case SUM_OF_PRODUCT -> PRODUCT_MANAGER.printCountOfProduct();
                 case MAX_PRICE_OF_PRODUCT -> PRODUCT_MANAGER.printMaxPriceOfProduct();
                 case MIN_PRICE_OF_PRODUCT -> PRODUCT_MANAGER.printMinPriceOfProduct();
                 case AVG_PRICE_OF_PRODUCT -> PRODUCT_MANAGER.printAvgPriceOfProduct();
                 case GET_ALL_PRODUCTS -> printAllProducts();
                 case GET_ALL_CATEGORY -> printAllCategory();
+                case GET_ALL_CATALOG -> printAllCatalogs();
+                case ADD_USER -> addUser();
+                case WATCH_PRODUCTS -> watchProduct();
                 default -> System.out.println("Invalid choice. Please try again!");
             }
         }
     }
+
+    private static void watchProduct() {
+        int limitValue = 5;
+        int offsetValue = 0;
+        boolean continueWatchProducts = true;
+        while (continueWatchProducts) {
+            List<Product> products = PRODUCT_MANAGER.watchProducts(limitValue, offsetValue);
+            for (Product product : products) {
+                System.out.println(product);
+            }
+            System.out.println("> (next) | < (back) ! (exit)");
+            String select = SCANNER.nextLine();
+            switch (select) {
+                case ">" -> offsetValue += limitValue;
+                case "<" -> offsetValue -= limitValue;
+                case "!" -> continueWatchProducts = false;
+                default -> System.out.println("You are entered an error!");
+            }
+        }
+    }
+
+    private static void addUser() {
+        System.out.println("Enter your name, email, password by(space)");
+        String inputLine = SCANNER.nextLine();
+        String[] inputArr = inputLine.split("\\s+");
+
+        // To avoid arrayIndexOutOfBoundsException
+        if (inputArr.length != 3) {
+            System.out.println("Error: Try again, you must write 3 values you write " + inputArr.length + " values");
+            return;
+        }
+        String name = inputArr[0];
+        String email = inputArr[1];
+        String password = inputArr[2];
+        USER_MANAGER.addUser(User.builder().name(name).email(email).password(password).build());
+    }
+
     private static void addCategory() {
         System.out.println("Enter category name");
         String categoryName = SCANNER.nextLine();
-        Category category = new Category(categoryName);
-        CATEGORY_MANAGER.categoryManagerAdd(category);
-        System.out.println("Category " + categoryName + " is successfully added");
+        if (CATEGORY_MANAGER.getCategoryByName(categoryName) == null) {
+            Category category = new Category(categoryName);
+            CATEGORY_MANAGER.categoryManagerAdd(category);
+            System.out.println("Category " + categoryName + " is successfully added");
+        } else {
+            System.out.println("Category with " + categoryName + " is already added!");
+        }
     }
 
     private static void editCategoryById() {
@@ -61,7 +115,20 @@ public class Main implements Command {
     }
 
     private static void addProduct() {
-        System.out.println("Enter product details (name description price quantity category):");
+        List<Catalog> catalogById = new ArrayList<>();
+
+        System.out.println("Enter catalog ids:");
+        printAllCatalogs();
+        String catalogId = SCANNER.nextLine();
+        String[] catalogArr = catalogId.split("\\s+");
+        for (String selectedCatalogs : catalogArr) {
+            catalogById.add(CATALOG_MANAGER.getCatalogById(Integer.parseInt(selectedCatalogs)));
+        }
+
+        System.out.println("Enter product details (name description price quantity category(id)):");
+        System.out.println("Available Categories:");
+        printAllCategory();
+
         String inputLine = SCANNER.nextLine();
         String[] inputArray = inputLine.split("\\s+");
 
@@ -74,7 +141,7 @@ public class Main implements Command {
             int category_id = Integer.parseInt(inputArray[4]);
 
             Category category = CATEGORY_MANAGER.getCategoryById(category_id);
-            Product product = new Product(name, description, price, quantity, category);
+            Product product = new Product(name, description, price, quantity, category, catalogById);
 
             PRODUCT_MANAGER.productManagerAdd(product);
             System.out.println("Product  with " + name + " is successfully added");
@@ -82,6 +149,7 @@ public class Main implements Command {
             System.out.println("Invalid input. Please try again!");
         }
     }
+
 
     private static void editProduct() {
         printAllProducts();
@@ -119,6 +187,19 @@ public class Main implements Command {
         System.out.println("Enter product id for delete");
         int id = Integer.parseInt(SCANNER.nextLine());
         PRODUCT_MANAGER.productManagerDeleteById(id);
+        System.out.println("User successfully added!");
+    }
+
+    private static void addCatalog() {
+        System.out.println("Enter the catalog name");
+        String catalogName = SCANNER.nextLine();
+        CATALOG_MANAGER.addCatalogManager(Catalog.builder().name(catalogName).build());
+    }
+
+    private static void printAllCatalogs() {
+        for (Catalog catalog : CATALOG_MANAGER.getCatalogs()) {
+            System.out.println(catalog);
+        }
     }
 
     private static void printAllCategory() {
