@@ -150,7 +150,6 @@ public class Main implements Command {
         }
     }
 
-
     private static void editProduct() {
         printAllProducts();
         System.out.println("Enter the ID of the product you want to edit:");

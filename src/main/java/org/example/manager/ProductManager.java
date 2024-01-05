@@ -112,7 +112,7 @@ public class ProductManager {
 
     public List<Product> watchProducts(int limitValue, int offsetValue) {
         List<Product> tmpProductList = new ArrayList<>();
-        String query = "SELECT * FROM product LIMIT ? OFFSET ?";
+        String query = "SELECT * FROM product ORDER BY product_id DESC LIMIT ? OFFSET ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, limitValue);
             preparedStatement.setInt(2, offsetValue);
